@@ -1,25 +1,25 @@
+
 clear;
 clc;
 
-mods_Rastr = {'fix_Int','fix_Int_Atr','lim_erro_incid'};
-legend_Rastr = {'Algorithm based on d\omega','Algorithm based on delayed/ d\omega', 'Algorithm based on d\theta'};
-%mods_Rastr = {'fix_int','lim_erro_beta','lim_erro_gamma','lim_erro_incid'};%,'prop_Aur','prop_Aur_2'};
-%legend_Rastr = {'Algoritmo com base em d\omega','Algoritmo com base em d\beta','Algoritmo com base em d\gamma','Algoritmo com base em d\theta'};%,'Algoritmo ','prop Aur 2'};
+mods_Rastr = {'ideal','fix_Int','fix_Int_Atr'};
+
+crit = [1,45,45];
+
 crit_max = 80;  % Valor máximo para o critério utilizado
 crit_min = 0.1;   % Valor mínimo para o critério utilizado
 crit_inc = 3;   % Valor do incremento para o critério utilizado
-C1 = 0.9:-0.2:0.1;
-C2 = 0.1:0.2:0.9;
-legend_Rastr_Aur = {'Algorithm based on d\omega','C1 = 0.9 and C2 = 0.1', 'C1 = 0.7 and C2 = 0.3', 'C1 = 0.5 and C2 = 0.5', 'C1 = 0.3 and C2 = 0.7', 'C1 = 0.1 and C2 = 0.9'};
-d_omega = 1;    % Incremento nos valores do ângulo da hora solar, [o].
 
+d_omega = 1;    % Incremento nos valores do ângulo da hora solar, [o].
 dia_claro = 1; % Se 1, Simulação gerando valores de radiação em dia claro segundo Hottel (1976)
 	           % Se 0, dados reais
-
 cid = 7; % Definição da cidade onde sera feita a simulacao
 
+
+
+
 % VALORES PARA CADA CIDADE, NA ORDEM DE LATITUDE - Somente são válidas
-                                                % latitudes com módulo menor ou igual a 66.5º
+                         % latitudes com módulo menor ou igual a 66.5º
 cidades = {'Manaus - AM','Garanhuns - PE','Brasilia - DF','Belo Horizonte - MG','Campo Grande - MS','Joacaba - SC','Sao Gabriel - RS'};
 lat_cid = [-3.10          -8.88             -15.77           -19.80                 -20.43               -27.17         -30.33];
 altit_cid = [34.36        869.21            1115.25          937.53                 544.51               525.25         120.6];
@@ -57,6 +57,80 @@ H = H_cid(cid,:);
 [delta,omega_s] = Geom_Solar_Dia(lat, n);   % delta = Declinação solar
                                             % omega_s = ângulo de por do
                                             % sol
+
+if dia_claro == 1
+    clima = 1; % Atmosfera padrão
+
+    omega_1 = floor(-max(omega_s)/15)*15 : d_omega : floor(max(omega_s)/15)*15;
+    omega_2 =  ceil(-max(omega_s)/15)*15 : d_omega : ceil(max(omega_s)/15)*15;
+    omega = (omega_1 + omega_2)/2;
+
+    % Cálculo dos ângulos de elevação solar e de azimute do sol
+    [theta_z,alpha_s,gamma_s] = Geom_Solar_Hora(lat, n, omega, delta);
+
+    % RADIAÇÃO SOLAR NO TOPO DA ATMOSFERA
+
+    % Radiação solar diária global no topo da atmosfera
+    H_o = Rad_Ext_Dia(lat, n, delta, omega_s);      
+
+    % CALCULO RADIACAO DE DIA CLARO PARA SUPERFICIE HORIZONTAL
+    B = 2*pi/360*(n-1)*360/365;	% Variavel auxiliar
+
+    % Radiacao extraterrestre em superficie perpendicular a radiacao,
+    % conforme Duffie e Beckman (2006) e Iqbal (1983)
+    G_on = G_sc*(1.000110 + 0.034221*cos(B) + 0.001280*sin(B)...
+           + 0.000719*cos(2*B) + 0.000077*sin(2*B));
+
+    % Radiação solar extraterrestre em superficie horizontal
+    G_o = cosd(theta_z).*(G_on'*ones(1,size(theta_z,2)));
+
+    % Cálculo da radiação solar global, direta e difusa em superfície
+    % horizontal para dia claro
+
+    [G_h,G_b,G_d] = Rad_Dia_Claro(theta_z, altit/1000, clima, G_on);
+
+    % Dados da superfície de referência (orientada em direção ao norte e inclinação igual a latitude)
+    beta_sup = abs(lat);
+    gamma_sup = (lat<0)*180;
+
+    % CÁLCULO DA RADIAÇÃO EM SUPERFÍCIE COM ORIENTAÇÃO ARBITRÁRIA
+
+    % Razão entre a radiação direta incidente sobre superfície inclinada e
+    % sobre uma superfície horizontal
+    R_b = fator_Geom_Rb(lat, n, beta_sup, gamma_sup, omega_1, omega_2, omega_s, delta);
+
+    % Radiação em superfície arbitrária de acordo com o modelo de Perez et al
+    G_t_perez = Rad_Inc_Dia_Claro(G_h, G_b, G_d, G_o, R_b, beta_sup, rho_g, 'Perez', n, altit, theta_z, gamma_s, gamma_sup);
+    G_t_rastr = zeros(size(G_t_perez,1),size(G_t_perez,2),length(mods_Rastr));
+    
+    for j=1:length(mods_Rastr)
+        
+        [G_t_rastr(:,:,j),beta_sup,gamma_sup,n_reor_gamma,n_reor_beta] = Rad_Inc_Rast_Dia_Claro(G_h, G_b, G_d, G_o, R_b, rho_g, theta_z, alpha_s, gamma_s, omega, omega_1, omega_2, omega_s, lat, n, altit, delta, mods_Rastr{j}, 'inc_Hora', crit(j));
+            
+        % Cálculo do ganho no valor da radiação solar anual em
+        % relação ao sistema com inclinação igual a latitude
+        ganho_Rastr(j) = sum( sum(G_t_rastr(:,:,j)*3600*d_omega./15,2).*n_dias_mes' )./sum( sum(G_t_perez*3600*d_omega./15,2).*n_dias_mes' );
+        % Cálculo do número médio de reorientações diárias
+        n_reord_m(j) = sum(n_reor_gamma + n_reor_beta)/length(n);
+        
+        
+    end
+else
+    
+end
+
+figure('color',[1 1 1])
+plot(omega,G_t_perez(4,:))
+hold on
+grid on
+for j=1:length(mods_Rastr)
+   plot(omega,G_t_rastr(4,:,j)) 
+end
+legends = {'fix','ideal','fix_{Int}','fix_{Int,Atr}'};
+legend(legends)
+
+                                            
+%%                                            
                                             
 if dia_claro == 1
 
@@ -190,41 +264,3 @@ else
     ganho_Rastr = sum(sum(I_t_r,2))./sum(sum(I_t_perez,2));
         
 end     
-
-if dia_claro == 1    
-    figure('Color', [1 1 1]); 
-    hold all;
-    grid on;
-
-    for j = 1:length(mods_Rastr)
-        plot(n_reord_m(j,:), ganho_Rastr(j,:));
-    end
-
-    axis([0 90 1 1.5]);
-    legend(legend_Rastr{1:length(mods_Rastr)},'Location', 'SouthEast');
-    xlabel('Mean number of daily reorientations','FontName','Times New Roman','FontSize',12);
-    ylabel('Gain relative to a surface with   \beta = \phi','FontName','Times New Roman','FontSize',12);
-
-    figure('Color', [1 1 1]);
-    hold all;
-    grid on;
-
-%      plot(n_reord_m(1,:), ganho_Rastr(1,:));
-
-%         for j = 1:length(C1)
-%            plot(n_reord_m_Aur_2(j,:),ganho_Rastr_Aur_2(j,:));
-%         end
-%         
-%         axis([0 90 1 1.5]);
-%         legend(legend_Rastr_Aur{1:length(C1)},'Location', 'SouthEast');
-%         xlabel('Mean number of daily reorientations');
-%         ylabel('Gain relative to a surface with   \beta = \phi');
-
-else
-    for i=1:length(n)
-        figure('Color', [1 1 1]); hold on; grid on;
-        plot(omega, eta*I_t_perez(i,:),omega, eta*I_t_r(i,:),'r');
-        titulo = strcat('Total annual radiation - ',cidades{cid},'  (', num2str(abs(lat)), 'ºS), Month',num2str(i));
-        title(titulo);
-    end
-end

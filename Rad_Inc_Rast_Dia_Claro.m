@@ -60,7 +60,7 @@ gamma_sup = zeros(n_dias,n_h);
 n_reor_beta = ones(1,n_dias); % seta o número de reorientações diárias do angulo de inclinaçao
 n_reor_gamma = ones(1,n_dias); % seta o número de reorientações diárias do angulo de azimute
 
-if strcmpi(varargin{1},'fix_Int')   % Selação do caso com intervalo fixo
+if strcmpi(varargin{1},'fix_Int')   % Seleção do caso com intervalo fixo
     dT = varargin{3}; % Valor em ângulo horário do intervalo entre reorientações
     if strcmpi(varargin{2},'inc_Dia')   % Seleção da alteração da inclinação da superfície apenas uma vez por dia
         for i = 1:n_dias % Para cada dia:
@@ -253,7 +253,7 @@ elseif strcmpi(varargin{1},'lim_Erro_Gamma')  % Rastreamento com base no erro do
                 if ( abs(gamma_s(i,j) - gamma_s(i,j_old)) >= dErroGamma )  % Se o erro for maior que o definido pelo usuário
                     j_old = j;                      % Atualiza o valor de j_old (utilizado para definir qual será a orientação do sistema)
                     n_reor_gamma(i) = n_reor_gamma(i) + 1;  % Atualiza o número de reorientações do ângulo de azimute
-                    n_reor_beta(i) = n_reor_beta(i) + 1;  % Atualiza o número de reorientações do ângulo de azimute
+                    n_reor_beta(i) = n_reor_beta(i) + 1;  % Atualiza o número de reorientações do ângulo de inclinação
                 end
 
                 gamma_sup(i,j) = gamma_s(i,j_old);  % Atualiza a orientação do sistema                
@@ -314,7 +314,7 @@ elseif strcmpi(varargin{1},'lim_Erro_Incid')
                 if ( theta >= dErroIncid )  % Se o erro for maior que o definido pelo usuário
                     j_old = j;                      % Atualiza o valor de j_old (utilizado para definir qual será a orientação do sistema)
                     n_reor_gamma(i) = n_reor_gamma(i) + 1;  % Atualiza o número de reorientações do ângulo de azimute
-                    n_reor_beta(i) = n_reor_beta(i) + 1;  % Atualiza o número de reorientações do ângulo de azimute
+                    n_reor_beta(i) = n_reor_beta(i) + 1;  % Atualiza o número de reorientações do ângulo de inclinação
                 end
 
                 gamma_sup(i,j) = gamma_s(i,j_old);  % Atualiza a orientação do sistema                
@@ -367,7 +367,7 @@ elseif strcmpi(varargin{1},'prop_Aur')
                 if ( sqrt( (gamma_s(i,j) - gamma_s(i,j_old)).^2 + (theta_z(i,j) - theta_z(i,j_old)).^2 ) >= dErroAur )  % Se o erro for maior que o definido pelo usuário
                     j_old = j;                      % Atualiza o valor de j_old (utilizado para definir qual será a orientação do sistema)
                     n_reor_gamma(i) = n_reor_gamma(i) + 1;  % Atualiza o número de reorientações do ângulo de azimute
-                    n_reor_beta(i) = n_reor_beta(i) + 1;  % Atualiza o número de reorientações do ângulo de azimute
+                    n_reor_beta(i) = n_reor_beta(i) + 1;  % Atualiza o número de reorientações do ângulo de inclinação
                 end
 
                 gamma_sup(i,j) = gamma_s(i,j_old);  % Atualiza a orientação do sistema                
@@ -424,7 +424,7 @@ elseif strcmpi(varargin{1},'prop_Aur_2')
                 if ( sqrt( C1*(gamma_s(i,j) - gamma_s(i,j_old)).^2 + C2*(theta_z(i,j) - theta_z(i,j_old)).^2 ) >= dErroAur )  % Se o erro for maior que o definido pelo usuário
                     j_old = j;                      % Atualiza o valor de j_old (utilizado para definir qual será a orientação do sistema)
                     n_reor_gamma(i) = n_reor_gamma(i) + 1;  % Atualiza o número de reorientações do ângulo de azimute
-                    n_reor_beta(i) = n_reor_beta(i) + 1;  % Atualiza o número de reorientações do ângulo de azimute
+                    n_reor_beta(i) = n_reor_beta(i) + 1;  % Atualiza o número de reorientações do ângulo de inclinação
                 end
 
                 gamma_sup(i,j) = gamma_s(i,j_old);  % Atualiza a orientação do sistema                
