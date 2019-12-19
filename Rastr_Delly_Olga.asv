@@ -4,7 +4,7 @@ clc;
 
 mods_Rastr = {'ideal','fix_Int_Delly_Olga_1','fix_Int_Delly_Olga_2'};
 
-crit = [1,7,7];
+crit = [1,3,3];
 
 crit_max = 80;  % Valor máximo para o critério utilizado
 crit_min = 0.1;   % Valor mínimo para o critério utilizado
@@ -165,8 +165,8 @@ for cid = 1:3:7
 end
 
 figure(hAx)
-Titulo2 = strcat(num2str(crit(2)),' reorientações e sem atraso/adiantamento');
-suptitle(Titulo2)
+titulo
+suptitle()
 %%                                            
                                             
 if dia_claro == 1
