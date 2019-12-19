@@ -4,7 +4,7 @@ clc;
 
 mods_Rastr = {'ideal','fix_Int_Delly_Olga_1','fix_Int_Delly_Olga_2'};
 
-crit = [1,3,3];
+crit = [1,7,7];
 
 crit_max = 80;  % Valor máximo para o critério utilizado
 crit_min = 0.1;   % Valor mínimo para o critério utilizado
@@ -41,7 +41,7 @@ G_sc = 1367; % Constante solar
 n = [17 47 75 105 135 162 198 228 258 288 318 344]; % Dias médios de cada mês
 n_dias_mes = [31 28 31 30 31 30 31 31 30 31 30 31]; % Número de dias do respectivo mês
                
-for cid = 1:3:7               
+for cid = 4%:3:7               
 %                cid = 7; % Definição da cidade onde sera feita a simulacao
     % Latitude local [º]
     lat = lat_cid(cid);
@@ -104,15 +104,13 @@ for cid = 1:3:7
 
         for j=1:length(mods_Rastr)
 
-            [G_t_rastr(:,:,j),beta_sup,gamma_sup,n_reor_gamma,n_reor_beta] = Rad_Inc_Rast_Dia_Claro(G_h, G_b, G_d, G_o, R_b, rho_g, theta_z, alpha_s, gamma_s, omega, omega_1, omega_2, omega_s, lat, n, altit, delta, mods_Rastr{j}, 'inc_Hora', crit(j));
+            [G_t_rastr(:,:,j),beta_track(:,:,j),gamma_track(:,:,j),n_reor_gamma,n_reor_beta] = Rad_Inc_Rast_Dia_Claro(G_h, G_b, G_d, G_o, R_b, rho_g, theta_z, alpha_s, gamma_s, omega, omega_1, omega_2, omega_s, lat, n, altit, delta, mods_Rastr{j}, 'inc_Hora', crit(j));
 
             % Cálculo do ganho no valor da radiação solar anual em
             % relação ao sistema com inclinação igual a latitude
             ganho_Rastr(j) = sum( sum(G_t_rastr(:,:,j)*3600*d_omega./15,2).*n_dias_mes' )./sum( sum(G_t_perez*3600*d_omega./15,2).*n_dias_mes' );
             % Cálculo do número médio de reorientações diárias
             n_reord_m(j) = sum(n_reor_gamma + n_reor_beta)/length(n);
-
-
         end
     else
 
@@ -127,9 +125,10 @@ for cid = 1:3:7
         hold on
         grid on
         for j=1:length(mods_Rastr)
-           plot(omega,G_t_rastr(i,:,j)) 
-           ganho_Rastr(k,j) = (sum(G_t_rastr(i,:,j)*3600*d_omega./15,2).*n_dias_mes(i))./(sum(G_t_perez(i,:)*3600*d_omega./15,2).*n_dias_mes(i));
+            plot(omega,G_t_rastr(i,:,j)) 
+            ganho_Rastr(k,j) = (sum(G_t_rastr(i,:,j)*3600*d_omega./15,2).*n_dias_mes(i))./(sum(G_t_perez(i,:)*3600*d_omega./15,2).*n_dias_mes(i));
         end
+        
         title(mes{k});
         k = k+1;
     end

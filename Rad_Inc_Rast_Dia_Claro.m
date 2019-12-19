@@ -263,14 +263,12 @@ elseif strcmpi(varargin{1},'fix_Int_Delly_Olga_2')
                     if interval <= n_orient
                         j_next = find(omega > omega_old + dTs(interval),1);
                     else
-                        j_next = ind(end);
+                        j_next = j_old;
                     end
                     
                     if isempty(j_next)
                         j_next = ind(end);
                     end
-                    
-                    
                     
                     n_reor_gamma(i) = n_reor_gamma(i) + 1;  % Atualiza o número de reorientações do ângulo de azimute
                     n_reor_beta(i) = n_reor_beta(i) + 1;  % Atualiza o número de reorientações do ângulo de inclinação
