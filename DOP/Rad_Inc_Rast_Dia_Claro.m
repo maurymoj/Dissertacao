@@ -174,8 +174,8 @@ elseif strcmpi(varargin{1},'fix_Int_BiAxial_DO_1') % Relógio Uniaxial
             
             j_next = find(omega > omega_old + dT,1);
             
-            beta_sup(i,:) = beta_sup(i,:) + (omega <= omega_old).*( (theta_z(i,j_old) + theta_z(i,j_next))./2 );
-            gamma_sup(i,:) = gamma_sup(i,:) + (omega <= omega_old).*( (gamma_s(i,j_old)+ gamma_s(i,j_next))./2 );   % Define a orientação do sistema até o omega inicial do rastreamento
+            beta_sup(i,:) = beta_sup(i,:) + (omega <= omega_old).*theta_z(i,floor((j_old + j_next)./2));
+            gamma_sup(i,:) = gamma_sup(i,:) + (omega <= omega_old).*gamma_s(i,floor((j_old + j_next)./2));   % Define a orientação do sistema até o omega inicial do rastreamento
             
             for j = ind(1):length(omega) % Para cada hora após a hora inicial do rastreamento
                 if (omega(j) - omega_old >= dT)  % Se o intervalo que passou for maior que o definido pelo usuário:
@@ -206,19 +206,39 @@ elseif strcmpi(varargin{1},'fix_Int_BiAxial_DO_1') % Relógio Uniaxial
     end    
     
 elseif strcmpi(varargin{1},'fix_Int_BiAxial_DO_2')
-    n_orient = varargin{3}; % Número de reorientações
+    n_orient = varargin{3};             % Número de reorientações
     if strcmpi(varargin{2},'inc_Hora')  % Seleção da alteração da inclinação da superfície ao longo do dia
         for i = 1:n_dias % Para cada dia:
             
-
             dT = 2*omega_s(i)/(12); % Valor em ângulo horário do intervalo entre reorientações
             switch n_orient
                 case 3
                     dTs = [3,6,3]*dT;
-                case 4
+%                     dTs = [1,2,1]./sum([1,2,1])*12;
+                case 4 
                     dTs = [2,4,4,2]*dT;
-                case 7
-                    dTs = [1.25,1.25,2,3,2,1.25,1.25]*dT;
+%                     dTs = [1,3,3,1]./sum([1,3,3,1])*12;                    
+                case 5 
+                    dTs = [1,3,4,3,1]*dT;
+%                     dTs = [1,4,6,4,1]./sum([1,4,6,4,1])*12;                    
+                case 6 
+                    dTs = [1,2,3,3,2,1]*dT;
+%                     dTs = [1,5,10,10,5,1]./sum([1,5,10,10,5,1])*12;                    
+                case 7 
+                    dTs = [1.25, 1.25, 2, 3 , 2, 1.25, 1.25]*dT;
+%                     dTs = [1,6,15,20,15,6,1]./sum([1,6,15,20,15,6,1])*12;                    
+                case 8
+                    dTs = [0.5, 1, 1.5, 3, 3, 1.5, 1, 0.5]*dT;
+%                     dTs = [1,7,21,35,35,21,7,1]./sum([1,7,21,35,35,21,7,1])*12;                    
+                case 9
+                    dTs = [ 1, 1, 1.5, 1.5, 2 , 1.5, 1.5, 1, 1]*dT;
+%                     dTs = [1,8,28,56,70,56,28,8,1]./sum([1,8,28,56,70,56,28,8,1])*12;                    
+%                 case 10
+%                     dTs = [1,9,36,84,126,126,84,36,9,1]./sum([1,9,36,84,126,126,84,36,9,1])*12;
+%                 case 11
+%                     dTs = [1,10,45,120,210,252,210,120,45,10,1]./sum([1,10,45,120,210,252,210,120,45,10,1])*12;
+%                 case 12
+%                     dTs = [1,11,55,165,330,462,462,330,165,55,11,1]./sum([1,11,55,165,330,462,462,330,165,55,11,1])*12;
             end
             interval = 1;
             
@@ -229,8 +249,8 @@ elseif strcmpi(varargin{1},'fix_Int_BiAxial_DO_2')
             j_next = find(omega > omega_old + dTs(interval),1);
 %             omega_next = omega(j_next);
             
-            beta_sup(i,:) = beta_sup(i,:) + (omega <= omega_old).*( (theta_z(i,j_old) + theta_z(i,j_next))./2 );
-            gamma_sup(i,:) = gamma_sup(i,:) + (omega <= omega_old).*( (gamma_s(i,j_old)+ gamma_s(i,j_next))./2 );   % Define a orientação do sistema até o omega inicial do rastreamento
+            beta_sup(i,:) = beta_sup(i,:) + (omega <= omega_old).*theta_z(i,floor((j_old + j_next)./2));
+            gamma_sup(i,:) = gamma_sup(i,:) + (omega <= omega_old).*(gamma_s(i,floor((j_old + j_next)./2)));   % Define a orientação do sistema até o omega inicial do rastreamento
             
             for j = ind(1):length(omega) % Para cada hora após a hora inicial do rastreamento
                 if (interval <= n_orient) & (omega(j) - omega_old >= dTs(interval))  % Se o intervalo que passou for maior que o definido pelo usuário:
@@ -278,9 +298,9 @@ elseif strcmpi(varargin{1},'fix_Int_UniAxial_DO_1') % Relógio Uniaxial
             
 %             omega_next = omega(j_next);
             
-            beta_sup(i,:) = beta_sup(i,:) + (omega <= omega_old).*( (theta_z(i,j_old) + theta_z(i,j_next))./2 );
+            beta_sup(i,:) = beta_sup(i,:) + (omega <= omega_old).*theta_z(i,floor((j_old + j_next)./2));
                 % Define a orientação do sistema até o omega inicial do rastreamento
-            gamma_sup(i,:) = sign(gamma_s(i,:))*( gamma_s(i,j_midday) ); 
+            gamma_sup(i,:) = sign(gamma_s(i,:))*((abs(gamma_s(i,j_midday)) > 100 )*180);
             
             for j = ind(1):length(omega) % Para cada hora após a hora inicial do rastreamento
                 if (omega(j) - omega_old >= dT)  % Se o intervalo que passou for maior que o definido pelo usuário:
@@ -319,10 +339,18 @@ elseif strcmpi(varargin{1},'fix_Int_UniAxial_DO_2')
             switch n_orient
                 case 3
                     dTs = [3,6,3]*dT;
-                case 4
+                case 4 
                     dTs = [2,4,4,2]*dT;
-                case 7
-                    dTs = [1.25,1.25,2,3,2,1.25,1.25]*dT;
+                case 5 
+                    dTs = [1,3,4,3,1]*dT;
+                case 6 
+                    dTs = [1,2,3,3,2,1]*dT;
+                case 7 
+                    dTs = [1.25, 1.25, 2, 3 , 2, 1.25, 1.25]*dT;
+                case 8
+                    dTs = [0.5, 1, 1.5, 3, 3, 1.5, 1, 0.5]*dT;
+                case 9
+                    dTs = [ 1, 1, 1.5, 1.5, 2 , 1.5, 1.5, 1, 1]*dT;
             end
             interval = 1;
             
@@ -331,11 +359,12 @@ elseif strcmpi(varargin{1},'fix_Int_UniAxial_DO_2')
             omega_old = omega(j_old);       % Define o omega inicial como referência para o cálculo da passagem do tempo até a próxima reorientação
             
             j_next = find(omega > omega_old + dTs(interval),1);
+            j_midday = find(omega > 0,1);
 %             omega_next = omega(j_next);
             
-            beta_sup(i,:) = beta_sup(i,:) + (omega <= omega_old).*( (theta_z(i,j_old) + theta_z(i,j_next))./2 );
+            beta_sup(i,:) = beta_sup(i,:) + (omega <= omega_old).*theta_z(i,floor((j_old + j_next)./2));
             
-            gamma_sup(i,:) = sign(gamma_s(i,:))*180; 
+            gamma_sup(i,:) = sign(gamma_s(i,:))*((abs(gamma_s(i,j_midday)) > 100 )*180);
             
             for j = ind(1):length(omega) % Para cada hora após a hora inicial do rastreamento
                 if (interval <= n_orient) & (omega(j) - omega_old >= dTs(interval))  % Se o intervalo que passou for maior que o definido pelo usuário:
@@ -361,8 +390,7 @@ elseif strcmpi(varargin{1},'fix_Int_UniAxial_DO_2')
                     n_reor_beta(i) = n_reor_beta(i) + 1;  % Atualiza o número de reorientações do ângulo de inclinação
                 end
                 
-                gamma_sup(i,j) = gamma_s(i,floor((j_old + j_next)./2));  % Atualiza a orientação do sistema                    
-                beta_sup(i,j) = theta_z(i,floor((j_old + j_next)./2));
+                beta_sup(i,j) = theta_z(i,floor((j_old + j_next)./2)); % Atualiza a orientação do sistema                    
                 
             end
             
